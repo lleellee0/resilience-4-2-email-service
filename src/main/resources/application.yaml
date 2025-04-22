@@ -1,0 +1,28 @@
+server:
+  port: 8081
+  tomcat:
+    threads:
+      max: 3        # 최대 스레드 수를 3개로 제한합니다.
+    accept-count: 30   # 모든 스레드가 사용 중일 때 들어오는 요청을 대기시킬 큐의 크기를 30개로 제한합니다.
+
+spring:
+  kafka:
+    bootstrap-servers: localhost:29092,localhost:29093,localhost:29094
+    consumer:
+      group-id: email-sender-group
+      auto-offset-reset: earliest
+      key-deserializer: org.apache.kafka.common.serialization.StringDeserializer
+      value-deserializer: org.springframework.kafka.support.serializer.JsonDeserializer
+      properties:
+        # ▼▼▼ 신뢰하는 패키지에 프로듀서의 패키지를 추가 ▼▼▼
+        spring.json.trusted.packages: resilience.emailservice.mail,resilience.mainservice.main.mail,*
+        # 위처럼 콤마(,)로 구분하여 여러 패키지를 지정할 수 있습니다.
+        # 마지막의 '*'는 하위 패키지까지 포함하는 의미는 아니며, 보통 기본으로 추가되는 java.lang 등을 나타냅니다.
+        # 가장 간단하게 모든 패키지를 신뢰하려면 '*' 만 사용할 수도 있지만, 보안상 권장되지는 않습니다.
+        # spring.json.trusted.packages: '*' # 모든 패키지 신뢰 (주의해서 사용)
+
+        # ▼▼▼ 메시지의 타입 헤더 사용 안 함 설정 (명시적으로 지정 권장) ▼▼▼
+        spring.json.use.type.headers: false
+
+        # 값 타입 지정
+        spring.json.value.default.type: resilience.emailservice.mail.EmailRequest # 컨슈머가 최종적으로 변환할 타입
